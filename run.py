@@ -3,6 +3,8 @@
 
 import global_functions
 
-
-global_functions.init_and_run()
-
+try:
+    global_functions.init_and_run()
+except KeyboardInterrupt:
+    print "\nBye Bye!"
+    exit()
