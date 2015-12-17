@@ -3,7 +3,6 @@
 
 import global_functions
 import botocore
-import menus
 
 try:
     global_functions.init_and_run()

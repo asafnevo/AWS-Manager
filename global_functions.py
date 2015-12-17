@@ -125,10 +125,7 @@ def is_module_exists(name):
 
 
 def init_and_run():
-    if not is_pip_installed():
-        install_pip()
-    if not is_boto3_installed():
-        install_boto3()
+    install_dependencies()
 
     import menus
     from aws_credentials import AwsCredentials
@@ -137,3 +134,9 @@ def init_and_run():
         menus.show_credential_setup_menu()
     else:
         menus.show_main_menu()
+
+def install_dependencies():
+    if not is_pip_installed():
+        install_pip()
+    if not is_boto3_installed():
+        install_boto3()
