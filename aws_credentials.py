@@ -35,9 +35,6 @@ class AwsCredentials:
 
         credentials = AwsCredentials(aws_credentials_path)
 
-        #if not Aws().is_credentials_valid(credentials):
-        #    return None;
-
         if set_as_current:
             AwsCredentials._current_credentials = credentials;
 

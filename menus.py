@@ -25,7 +25,7 @@ def show_main_menu():
     print ""
     print "Please Choose an option from the menu:"
     print "1. Manage an EC2 instance"
-    print "2. Change initial settings"
+    print "2. Change AWS credentials settings"
     print "3. Uninstall Pip & Boto3"
     print "4. Exit"
     try:

@@ -7,12 +7,6 @@ from config import *
 from subprocess import PIPE, Popen
 import subprocess
 
-_aws_instance = None
-"""
-The current running instance of Aws
-:rtype Aws
-"""
-
 
 def get_default_region():
     return "eu-central-1"
@@ -288,9 +282,11 @@ def _get_resource(name, region=None):
     :return:
     """
     boto3.setup_default_session(aws_access_key_id=AwsCredentials.get_current_credentials().access_key,
-                                aws_secret_access_key=AwsCredentials.get_current_credentials().secret)
-    if region is not None:
-        boto3.setup_default_session(region_name=region)
-    else:
-        boto3.setup_default_session(region_name=get_default_region())
+
+                                aws_secret_access_key=AwsCredentials.get_current_credentials().secret,
+                                region_name=region)
+    #if region is not None:
+    #    boto3.setup_default_session(region_name=region)
+    #else:
+    #    boto3.setup_default_session(region_name=get_default_region())
     return boto3.resource(name);
