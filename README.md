@@ -6,7 +6,7 @@ In addition, it gave us the ability to create an interface for executing common 
 provide them login username and passwords, etc...
 
 # Installation
-   ```link to installation``` 
+   ```pip install AWS-Manager``` 
   
   After installing just run ```awsmanager```
    
