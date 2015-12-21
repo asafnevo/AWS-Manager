@@ -48,6 +48,7 @@ crashlytics-build.properties
 fabric.properties
 
 .config
+aws_manager/.config
 *.pyc
 build/
 AWS_Manager.egg-info/
