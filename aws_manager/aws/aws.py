@@ -6,7 +6,7 @@ Module for running AWS related functions
 import aws_credentials
 import boto3
 import collections
-import config_file
+import aws_manager.config_file as config_file
 from subprocess import PIPE, Popen
 import subprocess
 

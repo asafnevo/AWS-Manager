@@ -3,8 +3,8 @@
 Module to work with aws credentials
 """
 
-import config_file
-import functions
+import aws_manager.config_file as config_file
+import aws_manager.functions as functions
 
 _username = None
 """:type str Aws user name"""

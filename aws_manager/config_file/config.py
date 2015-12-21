@@ -2,9 +2,12 @@
 """
 Module for writing and reading values from the config file
 """
+import aws_manager.settings as settings
 from ConfigParser import ConfigParser
 
-_config_file_name = ".config"
+_config_file_name = settings.config_file_name  # ".config"
+
+
 """
 The config file name
 :type: str

@@ -4,7 +4,7 @@ This Module represent the global functions of the script
 """
 
 import subprocess
-import settings
+import aws_manager.settings as settings
 import distutils.spawn
 
 
@@ -133,8 +133,8 @@ def init_and_run():
     """
     install_dependencies()
 
-    import menus
-    import aws
+    import aws_manager.menus as menus
+    import aws_manager.aws as aws
 
     if not aws.is_valid_credentials_set():
         menus.show_credential_setup_menu()

@@ -49,5 +49,6 @@ fabric.properties
 
 .config
 *.pyc
-build
 build/
+AWS_Manager.egg-info/
+dist/

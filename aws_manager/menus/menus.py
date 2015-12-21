@@ -3,10 +3,10 @@
 Module for showing all the relevant module according to the user choices
 """
 
-import aws
+import aws_manager.aws as aws
 import subprocess;
-import settings;
-import functions
+import aws_manager.settings as settings;
+import aws_manager.functions as functions
 
 _instances = None
 """:rtype list instances of ec2"""
