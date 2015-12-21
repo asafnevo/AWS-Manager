@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
+name = "AWS-Manager"
 version = '0.2'
 description = "An open source project for managing your AWS resources easily in your day to day coding"
 long_description = "README.md"
@@ -17,7 +18,7 @@ def read(fname):
 setup(
         author=author,
         author_email=author_email,
-        name="AWS Manager",
+        name=name,
         version=version,
         license=license_type,
         description=description,
