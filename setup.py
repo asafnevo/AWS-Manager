@@ -4,6 +4,8 @@ import os
 version = '0.2'
 description = "An open source project for managing your AWS resources easily in your day to day coding"
 long_description = "README.md"
+author = 'Asaf Nevo, Aviv Paz',
+author_email = 'asafnevo1@gmail.com, avivpaz43556@gmail.com'
 
 
 def read(fname):
@@ -11,6 +13,8 @@ def read(fname):
 
 
 setup(
+        author=author,
+        author_email=author_email,
         name="AWS Manager",
         version=version,
         description=description,
