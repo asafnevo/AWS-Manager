@@ -1,30 +1,43 @@
 #!/usr/bin/python
+"""
+Module for showing all the relevant module according to the user choices
+"""
 
-from aws_credentials import *
+import aws
 import subprocess;
 import settings;
-import aws
+import functions
+
+_instances = None
+""":rtype list instances of ec2"""
 
 
 def show_credential_setup_menu():
+    """
+    Show the menu for adding credentials files
+    """
     subprocess.call("clear")
     print "Let's setup some initial settings:";
     aws_file_path = raw_input("What is the path to your AWS Access Key?\n");
-    AwsCredentials.save_path_to_config(aws_file_path)
-    credentials = AwsCredentials.load_from_config()
+    aws.save_path_to_config(aws_file_path)
+    credentials = aws.load_from_config()
     if credentials is None:
-        print "User credentails are invalid. Make sure you have the right path and permissions for the file"
+        print "User credentials are invalid. Make sure you have the right path and permissions for the file"
         exit();
     show_main_menu()
 
 
 def show_main_menu():
+    """
+    Show the script main menu
+    """
+    credentials = aws.get_current_credentials()
     subprocess.call("clear")
     print "Welcome to", settings.script_name
-    print "AWS User Key:", AwsCredentials.get_current_credentials().username
+    print "AWS User Key:", credentials["username"]
     print ""
     print "Please Choose an option from the menu:"
-    print "1. Manage an EC2 instance"
+    print "1. EC2 Instances Management"
     print "2. Change AWS credentials settings"
     print "3. Uninstall Pip & Boto3"
     print "4. Exit"
@@ -43,12 +56,18 @@ def main_menu_options(i):
     return {
         1: show_region_menu,
         2: show_credential_setup_menu,
-        3: global_functions.uninstall_pip,
+        3: functions.uninstall_pip,
         4: exit
     }.get(i, show_main_menu)
 
 
 def show_region_menu(is_no_instances=False):
+    global _instances
+    """
+    Show the region menu
+    :param boolean is_no_instances: default is False. call this method with True to show that there were no instances in
+        the selected region
+    """
     subprocess.call("clear")
     if is_no_instances:
         print "Sorry, no instances were found in this region\n"
@@ -68,11 +87,11 @@ def show_region_menu(is_no_instances=False):
         chosen_region = region_menu_options(int(raw_input()))
         if isinstance(chosen_region, str):
             print "Loading instances..."
-            instances = aws.load_ec2_instances(chosen_region)
-            if instances is None:
+            _instances = aws.load_ec2_instances(chosen_region)
+            if _instances is None:
                 show_region_menu(True)
             else:
-                show_environments_menu(instances)
+                show_environments_menu()
         else:
             chosen_region()
     except ValueError:
@@ -99,30 +118,41 @@ def region_menu_options(i):
     }.get(i, show_region_menu)
 
 
-def show_environments_menu(instances):
+def show_environments_menu():
+    global _instances
+    """
+    Show the environments menu
+    :param list instances: of EC2 instance to filter the environment from
+    """
     subprocess.call("clear")
     print "Please choose the environment your instance is located in:"
-    environments = aws.get_environments_from_instances(instances)
+    environments = aws.get_environments_from_instances(_instances)
     for i, environment in enumerate(environments):
         print "%d. %s" % (i + 1, environment)
     print "%d. Back" % (len(environments) + 1)
     chosen_index = int(raw_input());
     try:
         chosen_environment = environments[chosen_index - 1]
-        show_applications_menu(instances, chosen_environment)
+        show_applications_menu(chosen_environment)
     except ValueError:
-        show_environments_menu(instances)
+        show_environments_menu()
     except IndexError:
         if chosen_index == len(environments) + 1:
             show_region_menu()
         else:
-            show_environments_menu(instances)
+            show_environments_menu()
 
 
-def show_applications_menu(instances, environment):
+def show_applications_menu(environment):
+    global _instances
+    """
+    Show the application menu
+    :param list instances: of EC2 instance to filter the environment from
+    :param str environment: the name of the environment the user chosen
+    """
     subprocess.call("clear")
     print "Please choose the application your instance is part of:"
-    filtered_instance = aws.filter_instances_by_tag(instances, "Environment", environment)
+    filtered_instance = aws.filter_instances_by_tag(_instances, "Environment", environment)
     applications = aws.get_applications_from_instances(filtered_instance)
     for i, application in enumerate(applications):
         print "%d. %s" % (i + 1, application)
@@ -132,15 +162,23 @@ def show_applications_menu(instances, environment):
         chosen_application = applications[chosen_index - 1]
         show_instances_menu(filtered_instance, environment, chosen_application)
     except ValueError:
-        show_applications_menu(instances, environment)
+        show_applications_menu(environment)
     except IndexError:
         if chosen_index == len(applications) + 1:
-            show_environments_menu(instances)
+            show_environments_menu()
         else:
-            show_applications_menu(instances, environment)
+            show_applications_menu(environment)
 
 
 def show_instances_menu(instances, environment, application):
+    global _instances
+    """
+    Show the instance list
+    :param list instances: the list of instances from AWS
+    :param str environment: the environment we are showing
+    :param str application: the application the user chose
+    :return:
+    """
     subprocess.call("clear")
     print "Please choose the instance you want to manage:"
     filtered_instances = aws.filter_instances_by_tag(instances, "Application", application)
@@ -149,19 +187,26 @@ def show_instances_menu(instances, environment, application):
     print "%d. Back" % (len(filtered_instances) + 1)
     chosen_index = int(raw_input())
     try:
-        # Aws.get_instance().connect_to_instance(filtered_instances, chosen_index - 1)
-        # show_instances_menu(instances, environment, application)
         show_instance_manager_menu(filtered_instances, chosen_index - 1, environment, application)
     except ValueError:
-        show_instances_menu(instances, environment, application)
+        show_instances_menu(_instances, environment, application)
     except IndexError:
         if chosen_index == len(filtered_instances) + 1:
-            show_applications_menu(instances, environment)
+            show_applications_menu(environment)
         else:
-            show_instances_menu(instances, environment, application)
+            show_instances_menu(_instances, environment, application)
 
 
 def show_instance_manager_menu(instances, index, environment, application):
+    global _instances
+    """
+    Menu for a specific instance
+    :param list instances: the EC2 AWS instances list
+    :param int index: the index of the current instance in the list
+    :param str environment: the environment the user chose
+    :param str application: the application the user chose
+    :return:
+    """
     subprocess.call("clear")
     instance = instances[index]
     i = 1
@@ -175,7 +220,7 @@ def show_instance_manager_menu(instances, index, environment, application):
     print "%d. Back" % i
     chosen = int(raw_input())
     if chosen == i:
-        show_instances_menu(instances, environment, application)
+        show_instances_menu(_instances, environment, application)
     elif chosen == 1:
         aws.connect_to_instance(instances, index)
         show_instance_manager_menu(instances, index, environment, application)

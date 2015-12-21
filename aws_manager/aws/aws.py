@@ -1,9 +1,12 @@
 #!/usr/bin/python
+"""
+Module for running AWS related functions
+"""
 
-from aws_credentials import AwsCredentials
+import aws_credentials
 import boto3
 import collections
-from config import *
+import config_file
 from subprocess import PIPE, Popen
 import subprocess
 
@@ -21,8 +24,8 @@ def load_ec2_instances(region):
     """
     ec2 = _get_resource("ec2", region)
     ec2_instances = ec2.instances.all()
-    counter = collections.Counter(ec2_instances);
-    ec2_size = sum(counter.itervalues());
+    counter = collections.Counter(ec2_instances)
+    ec2_size = sum(counter.itervalues())
     if ec2_size == 0:
         return None
     return ec2_instances
@@ -153,12 +156,12 @@ def connect_to_instance(instances, index, command=None):
     """
     instance = instances[index]
     nat_instance = get_nat_from_instances(instances)
-    if instance == nat_instance:
+    if nat_instance is None:
+        start_ssh_session(instance, "ubuntu", instance.key_name, command)
+    elif instance == nat_instance:
         start_ssh_session(instance, "ec2-user", instance.key_name, command)
     else:
         start_nat_ssh_session(instance, "ubuntu", nat_instance, "ec2-user", instance.key_name, command)
-
-        # ssh_command = "ssh -A -i '%s' ec2-user@%s ssh -t -t ubuntu@%s" % (
 
 
 def start_ssh_session(instance, user, key_name, command=None):
@@ -179,8 +182,7 @@ def start_ssh_session(instance, user, key_name, command=None):
     call = Popen(ssh_command, shell=True, stderr=PIPE)
     stdout, stderr = call.communicate()
     if key_error in stderr:
-        config = ConfigFile()
-        config.remove_parameter("key_pairs", key_name)
+        config_file.remove_parameter("key_pairs", key_name)
         raw_input("Error loading key, please make sure the key and user are correct. Click enter to continue")
 
 
@@ -194,8 +196,7 @@ def start_nat_ssh_session(instance, instance_user, nat_instance, nat_user, key_n
     :param key_name: the key_pair name
     """
     key_pair_path = load_key_pair(key_name)
-    nat_instance_dns = get_instance_tag(nat_instance, "Public Domain")
-    ssh_command = "ssh -A -t -i '%s' %s@%s" % (key_pair_path, nat_user, nat_instance_dns)
+    ssh_command = "ssh -A -t -i '%s' %s@%s" % (key_pair_path, nat_user, nat_instance.public_ip_address)
     tunnel_command = "ssh %s@%s" % (instance_user, instance.private_ip_address)
     if command is not None:
         ssh_command = "%s '%s \"%s\"'" % (ssh_command, tunnel_command, command)
@@ -207,8 +208,7 @@ def start_nat_ssh_session(instance, instance_user, nat_instance, nat_user, key_n
     call = Popen(ssh_command, shell=True, stderr=PIPE)
     stdout, stderr = call.communicate()
     if key_error in stderr:
-        config = ConfigFile()
-        config.remove_parameter("key_pairs", key_name)
+        config_file.remove_parameter("key_pairs", key_name)
         raw_input("Error loading key, please make sure the key and user are correct. Click enter to continue")
 
 
@@ -220,15 +220,14 @@ def pull_git_branch(instances, index, branch="development"):
     :param branch: the name of the branch to pull, development is default
     """
     instance = instances[index]
-    config = ConfigFile();
-    username = config.get_parameter("git", "username")
-    password = config.get_parameter("git", "password")
+    username = config_file.get_parameter("git", "username")
+    password = config_file.get_parameter("git", "password")
     if username is None:
         username = raw_input("Please enter username to use with your git account\n")
-        config.add_parameter("git", "username", username)
+        config_file.add_parameter("git", "username", username)
     if password is None:
         password = raw_input("Please enter password to use with your git account\n")
-        config.add_parameter("git", "password", password)
+        config_file.add_parameter("git", "password", password)
     user_pass = "%s:%s" % (username, password)
     remote_repository = get_instance_tag(instance, "Remote Repository")
     remote_repository = "https://%s@%s" % (user_pass, remote_repository)
@@ -264,12 +263,11 @@ def load_key_pair(key_name):
     :return: path to key pair
     :rtype str
     """
-    config = ConfigFile()
-    key_pair_path = config.get_parameter("key_pairs", key_name)
+    key_pair_path = config_file.get_parameter("key_pairs", key_name)
     if key_pair_path is None:
         print "Please define path for Key-Pair named %s" % key_name
         key_pair_path = raw_input().replace("\\", "").strip()
-        config.add_parameter("key_pairs", key_name, key_pair_path)
+        config_file.add_parameter("key_pairs", key_name, key_pair_path)
     subprocess.call("ssh-add '%s'" % key_pair_path, shell=True)
     return key_pair_path
 
@@ -281,12 +279,9 @@ def _get_resource(name, region=None):
     :param str region: optional region
     :return:
     """
-    boto3.setup_default_session(aws_access_key_id=AwsCredentials.get_current_credentials().access_key,
-
-                                aws_secret_access_key=AwsCredentials.get_current_credentials().secret,
+    credentials = aws_credentials.get_current_credentials()
+    boto3.setup_default_session(aws_access_key_id=credentials["key"],
+                                aws_secret_access_key=credentials["secret"],
                                 region_name=region)
-    #if region is not None:
-    #    boto3.setup_default_session(region_name=region)
-    #else:
-    #    boto3.setup_default_session(region_name=get_default_region())
+
     return boto3.resource(name);

@@ -49,3 +49,5 @@ fabric.properties
 
 .config
 *.pyc
+build
+build/

@@ -1,4 +1,7 @@
 #!/usr/bin/python
+"""
+This Module represent the global functions of the script
+"""
 
 import subprocess
 import settings
@@ -125,17 +128,24 @@ def is_module_exists(name):
 
 
 def init_and_run():
+    """
+    Initialize the system, making sure all the dependencies and certificates are installed and run the script
+    """
     install_dependencies()
 
     import menus
-    from aws_credentials import AwsCredentials
+    import aws
 
-    if not AwsCredentials.is_valid_credentials_set():
+    if not aws.is_valid_credentials_set():
         menus.show_credential_setup_menu()
     else:
         menus.show_main_menu()
 
+
 def install_dependencies():
+    """
+    Install all the dependencies necessary to run
+    """
     if not is_pip_installed():
         install_pip()
     if not is_boto3_installed():

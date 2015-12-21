@@ -1,11 +1,11 @@
 #!/usr/bin/python
 
 
-import global_functions
+import functions
 import botocore
 
 try:
-    global_functions.init_and_run()
+    functions.init_and_run()
 except KeyboardInterrupt:
     print "\nBye Bye!"
     exit()
