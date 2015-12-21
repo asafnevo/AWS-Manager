@@ -78,7 +78,6 @@ def _save():
     """
     Save the config file to the file
     """
-    config_file = open(_config_file_name, 'w')
-    with config_file as f:
+    with open(_config_file_name, 'w') as f:
         _config.write(f)
-    config_file.close()
+

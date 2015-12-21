@@ -250,7 +250,8 @@ def has_repository(instance):
     :return: True if there is a repository for the instance, false otherwise
     :rtype: boolean
     """
-    if get_instance_tag(instance, "Remote Repository") is not None:
+    if get_instance_tag(instance, "Remote Repository") is not None and get_instance_tag(instance,
+                                                                                        "Local Repository") is not None:
         return True
     return False
 
