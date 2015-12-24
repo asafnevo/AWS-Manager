@@ -240,6 +240,8 @@ def show_git_pull_menu(instances, index, environment, application):
     """
     instance = instances[index]
     default_branch = aws.get_instance_tag(instance, "Default Branch")
+    if default_branch is None:
+        default_branch = settings.default_git_branch
     branch = raw_input("Please specify branch or press enter for default (default: %s)\n" % default_branch)
     if branch == "":
         aws.pull_git_branch(instances, index, default_branch)

@@ -45,6 +45,7 @@ provide them login username and passwords, etc...
   * **Remote Repository:** The remote git repository URL (without username or password) of the code installed on server. Without this tag, the pull function wont' be presented as an option
   * **Local Repository:** The local path for the git repository to update on pull requests. Without this tag, the pull function won't be presented as an option
   * **Public Domain:** if your instance has a public domain associated with (instance.your-domain.com), it will be shown as part of the information on the instance.
+  * **Default Branch:** The name of the default git branch for this instance. If tag is empty - development will be the default
 
 
 Would love to have your feedbacks, issues, etc...
