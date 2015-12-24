@@ -225,12 +225,25 @@ def show_instance_manager_menu(instances, index, environment, application):
         aws.connect_to_instance(instances, index)
         show_instance_manager_menu(instances, index, environment, application)
     elif chosen == 2:
-        branch = raw_input("Please specify branch or press enter for default (development branch)\n")
-        if branch == "":
-            aws.pull_git_branch(instances, index)
-        else:
-            aws.pull_git_branch(instances, index, branch)
-        raw_input("Press enter to continue")
-        show_instance_manager_menu(instances, index, environment, application)
+        show_git_pull_menu(instances, index, environment, application)
     else:
         show_instance_manager_menu(instances, index, environment, application)
+
+
+def show_git_pull_menu(instances, index, environment, application):
+    """
+    Show the git pull menu for the instance
+    :param list instances: the EC2 AWS instances list
+    :param int index: the index of the current instance in the list
+    :param str environment: the environment the user chose
+    :param str application: the application the user chose
+    """
+    instance = instances[index]
+    default_branch = aws.get_instance_tag(instance, "Default Branch")
+    branch = raw_input("Please specify branch or press enter for default (default: %s)\n" % default_branch)
+    if branch == "":
+        aws.pull_git_branch(instances, index, default_branch)
+    else:
+        aws.pull_git_branch(instances, index, branch)
+    raw_input("Press enter to continue")
+    show_instance_manager_menu(instances, index, environment, application)
