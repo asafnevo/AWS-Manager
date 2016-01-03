@@ -269,7 +269,7 @@ def load_key_pair(key_name):
         print "Please define path for Key-Pair named %s" % key_name
         key_pair_path = raw_input().replace("\\", "").strip()
         config_file.add_parameter("key_pairs", key_name, key_pair_path)
-    subprocess.call("ssh-add '%s'" % key_pair_path, shell=True)
+    subprocess.call("sudo ssh-add '%s'" % key_pair_path, shell=True)
     return key_pair_path
 
 
