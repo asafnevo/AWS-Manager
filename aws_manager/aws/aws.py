@@ -28,7 +28,7 @@ def load_ec2_instances(region):
     ec2_size = sum(counter.itervalues())
     if ec2_size == 0:
         return None
-    return ec2_instances
+    return ec2_instances.filter(Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
 
 
 def get_environments_from_instances(instances):
@@ -45,7 +45,7 @@ def get_environments_from_instances(instances):
             key = tag.get("Key")
             if key == "Environment":
                 environment = tag.get("Value").strip()
-                if environment not in environments:
+                if environment not in environments and environment is not "":
                     environments.append(environment)
     return environments
 
@@ -96,9 +96,9 @@ def convert_instance_to_menu_string(instance):
         additional_list.append("Private Ip: %s" % instance.private_ip_address)
     if instance.public_ip_address is not None and instance.public_ip_address != "":
         additional_list.append("Public Ip: %s" % instance.public_ip_address)
-    public_domain = get_instance_tag(instance, "Public Domain")
+    public_domain = get_instance_tag(instance, "Domain")
     if public_domain is not None and public_domain != "":
-        public_domain = "Public Domain: %s" % public_domain
+        public_domain = "Domain: %s" % public_domain
         additional_list.append(public_domain)
     for additional in additional_list:
         if not string:
@@ -117,14 +117,14 @@ def get_instance_tag(instance, key):
     """
     Get instance tag
     :param boto3.ec2 instance: the instance to get the name for
-    :param str key the key of the tag
+    :param str key: the key of the tag
     :rtype: str
     :return: the name of the instance or None if no name was defined
     """
     tags = instance.tags
     for tag in tags:
-        if tag.get("Key") == key:
-            return tag.get("Value")
+        if tag.get("Key").strip() == key.strip():
+            return tag.get("Value").strip();
     return None
 
 
@@ -141,7 +141,7 @@ def filter_instances_by_tag(instances, key, value):
     for instance in instances:
         tags = instance.tags
         for tag in tags:
-            if tag.get("Key") == key and tag.get("Value") == value:
+            if tag.get("Key").strip() == key.strip() and tag.get("Value").strip() == value.strip():
                 filtered_instance.append(instance)
     return filtered_instance
 
@@ -153,6 +153,7 @@ def connect_to_instance(instances, index, command=None):
     It will launch an ssh session to the instance
     :param instances: the list of instance from which you want to connect to the instance
     :param index:  the index of the instance you want to connect to
+    :param command: optional command to start the instance for and stop when finished
     """
     instance = instances[index]
     nat_instance = get_nat_from_instances(instances)
@@ -168,7 +169,9 @@ def start_ssh_session(instance, user, key_name, command=None):
     """
     Starts an ssh session to an instance
     :param instance: the instance to start the session to
-    :param nat: optional nat instance to connect through
+    :param user: the user name to use to log into the instance
+    :param key_name: the name of the key file for login
+    :param command: optional command to start the instance for and stop when finished
     """
     key_pair_path = load_key_pair(key_name)
     ssh_command = "ssh -i '%s' %s@%s" % (

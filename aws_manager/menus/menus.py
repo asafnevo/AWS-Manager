@@ -11,6 +11,8 @@ import aws_manager.functions as functions
 _instances = None
 """:rtype list instances of ec2"""
 
+_region = None
+
 
 def show_credential_setup_menu():
     """
@@ -62,32 +64,37 @@ def main_menu_options(i):
 
 
 def show_region_menu(is_no_instances=False):
-    global _instances
     """
     Show the region menu
     :param boolean is_no_instances: default is False. call this method with True to show that there were no instances in
         the selected region
     """
+    global _instances, _region
     subprocess.call("clear")
     if is_no_instances:
         print "Sorry, no instances were found in this region\n"
-
-    print "Please choose the region of the EC2 instance you wish to connect to:";
-    print "1. US East (N. Virginia)";
-    print "2. US West (Oregon)";
-    print "3. US West (N. California)";
-    print "4. EU (Ireland)";
-    print "5. EU (Frankfurt)";
-    print "6. Asia Pacific (Singapore)";
-    print "7. Asia Pacific (Sydney)";
-    print "8. Asia Pacific (Tokyo)";
-    print "9. South America (Sao Paulo)";
-    print "10. Back";
+    regions = {
+        1: "US East (N. Virginia): us-east-1",
+        2: "US West (Oregon): us-west-2",
+        3: "US West (N. California): us-west-1",
+        4: "EU (Ireland): eu-west-1",
+        5: "EU (Frankfurt): eu-central-1",
+        6: "Asia Pacific (Singapore): ap-southeast-1",
+        7: "Asia Pacific (Sydney): ap-southeast-2",
+        8: "Asia Pacific (Tokyo): ap-northeast-1",
+        9: "South America (Sao Paulo): sa-east-1",
+        10: "Back"
+    }
+    print "Please choose the region of the EC2 instance you wish to connect to:"
+    for key, value in regions.items():
+        print "%d. %s" % (key, value)
     try:
-        chosen_region = region_menu_options(int(raw_input()))
+        user_input = int(raw_input())
+        chosen_region = region_menu_options(user_input)
         if isinstance(chosen_region, str):
             print "Loading instances..."
             _instances = aws.load_ec2_instances(chosen_region)
+            _region = regions.get(user_input)
             if _instances is None:
                 show_region_menu(True)
             else:
@@ -125,6 +132,7 @@ def show_environments_menu():
     :param list instances: of EC2 instance to filter the environment from
     """
     subprocess.call("clear")
+    print "Region: %s\n" % _region
     print "Please choose the environment your instance is located in:"
     environments = aws.get_environments_from_instances(_instances)
     for i, environment in enumerate(environments):
@@ -151,6 +159,7 @@ def show_applications_menu(environment):
     :param str environment: the name of the environment the user chosen
     """
     subprocess.call("clear")
+    print "Region: %s\nEnvironment: %s\n" % (_region, environment)
     print "Please choose the application your instance is part of:"
     filtered_instance = aws.filter_instances_by_tag(_instances, "Environment", environment)
     applications = aws.get_applications_from_instances(filtered_instance)
@@ -180,6 +189,7 @@ def show_instances_menu(instances, environment, application):
     :return:
     """
     subprocess.call("clear")
+    print "Region: %s\nEnvironment: %s\nApplication: %s\n" % (_region, environment, application)
     print "Please choose the instance you want to manage:"
     filtered_instances = aws.filter_instances_by_tag(instances, "Application", application)
     for i, instance in enumerate(filtered_instances):
@@ -210,6 +220,7 @@ def show_instance_manager_menu(instances, index, environment, application):
     subprocess.call("clear")
     instance = instances[index]
     i = 1
+    print "Region: %s\nEnvironment: %s\nApplication: %s\n" % (_region, environment, application)
     print "Instance: %s" % (aws.get_instance_tag(instance, "Name"))
     print "Please choose what you want to do:"
     print "%d. Connect" % i
