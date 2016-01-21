@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import os
 
 name = "AWS-Manager"
-version = '0.3c'
+version = '0.4'
 description = "An open source project for managing your AWS resources easily in your day to day coding"
 long_description = "README.md"
 author = 'Asaf Nevo, Aviv Paz',
